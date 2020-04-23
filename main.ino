@@ -3,6 +3,11 @@ const int stepPin1 = 3;
 const int dirPin1 = 4;
 const int stepPin2 = 5;
 const int dirPin2 = 6;
+const int LEDPIN = 13;
+const int SENSORPIN = 7;
+
+int sensorState = 0, lastState=0;         // variable for reading the pushbutton status
+
 unsigned long previousTime;
 const long interval = 4500;
 unsigned long currentTime;
@@ -12,6 +17,11 @@ void setup() {
   pinMode(dirPin1, OUTPUT);
   pinMode(stepPin2, OUTPUT);
   pinMode(dirPin2, OUTPUT);
+  // initialize the LED pin as an output:
+  pinMode(LEDPIN, OUTPUT);      
+  // initialize the sensor pin as an input:
+  pinMode(SENSORPIN, INPUT);     
+  digitalWrite(SENSORPIN, HIGH); // turn on the pullup
   
   previousTime = 0;
   Serial.begin(9600);
