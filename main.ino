@@ -1,3 +1,10 @@
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BNO055.h>
+#include <utility/imumaths.h>
+
+Adafruit_BNO055 bno = Adafruit_BNO055(55);
+
 // PIN DEFINITIONS
 const int stepPin1 = 3; // motor pins 1
 const int dirPin1 = 4;
@@ -7,6 +14,10 @@ const int LEDPIN = 13;
 const int SENSORPIN = 7; // ir sensor pin
 
 int sensorState = 0, lastState=0;         // variable for reading the pushbutton status
+
+float x;
+float y;
+float z;
 
 unsigned long previousTime;
 const long interval = 4500;
@@ -75,18 +86,69 @@ void tilt() {
    }
 }
 
+void gyro_setup(void)
+{
+  Serial.begin(9600);
+  Serial.println("Orientation Sensor Test"); Serial.println("");
+  
+  /* Initialise the sensor */
+  if(!bno.begin())
+  {
+    /* There was a problem detecting the BNO055 ... check your connections */
+    Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
+    while(1);
+  }
+  
+  delay(1000);
+    
+  bno.setExtCrystalUse(true);
+}
+
+// gyro working code
+void gyro_work(void) 
+{
+  /* Get a new sensor event */ 
+  sensors_event_t event; 
+  bno.getEvent(&event);
+  
+  /* Display the floating point data */
+  x = event.orientation.x;
+  y = event.orientation.y;
+  z = event.orientation.z;
+  
+  delay(100);
+}
+
 // stabilize the platform
+// location and axis should be tested later
 void stabilize() {
-  digitalWrite(dirPin1, HIGH);
-  currentTime = millis();
-  previousTime = currentTime();
-  while (currentTime - previousTime <= interval/2) {
+  gyro_work();
+  while (x > 2) { // suppose the x-axis is the axis that can be changed
+    digitalWrite(dirPin1, HIGH);
     currentTime = millis();
-    digitalWrite(stepPin1, HIGH);
-    delayMicroseconds(500);
-    digitalWrite(stepPin1, LOW);
-    delayMicroseconds(500);
-   }
+    previousTime = currentTime();
+    while (currentTime - previousTime <= interval/2) {
+      currentTime = millis();
+      digitalWrite(stepPin1, HIGH);
+      delayMicroseconds(500);
+      digitalWrite(stepPin1, LOW);
+      delayMicroseconds(500);
+    }
+    gyro_work();
+  }
+  while (x < -2) {
+    digitalWrite(dirPin1, HIGH);
+    currentTime = millis();
+    previousTime = currentTime();
+    while (currentTime - previousTime <= interval/2) {
+      currentTime = millis();
+      digitalWrite(stepPin1, HIGH);
+      delayMicroseconds(500);
+      digitalWrite(stepPin1, LOW);
+      delayMicroseconds(500);
+    }
+    gyro_work();
+  }
 }
 
 void loop() {
