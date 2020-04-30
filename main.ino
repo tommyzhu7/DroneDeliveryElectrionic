@@ -1,10 +1,10 @@
 // PIN DEFINITIONS
-const int stepPin1 = 3;
+const int stepPin1 = 3; // motor pins 1
 const int dirPin1 = 4;
-const int stepPin2 = 5;
+const int stepPin2 = 5; // motor pins 2
 const int dirPin2 = 6;
 const int LEDPIN = 13;
-const int SENSORPIN = 7;
+const int SENSORPIN = 7; // ir sensor pin
 
 int sensorState = 0, lastState=0;         // variable for reading the pushbutton status
 
@@ -44,6 +44,7 @@ void CCW() {
   }
 }
 
+// turing motor clockwise
 void CW() {
   digitalWrite(dirPin1, LOW);
   digitalWrite(dirPin2, LOW);
@@ -60,6 +61,7 @@ void CW() {
   }
 }
 
+// tile the platform one side to load off packages
 void tilt() {
   digitalWrite(dirPin1, LOW);
   currentTime = millis();
@@ -73,6 +75,7 @@ void tilt() {
    }
 }
 
+// stabilize the platform
 void stabilize() {
   digitalWrite(dirPin1, HIGH);
   currentTime = millis();
@@ -87,10 +90,17 @@ void stabilize() {
 }
 
 void loop() {
-  CW();
-  CCW();
+  while (SENSORPIN == LOW){
+    CCW();
+    stabilize();
+    sensorState = digitalRead(SensorPin);
+  }
+  // time is changed by delayMicroseconds function in CCW()
   tilt();
   delayMicroSeconds(1000);
-  stabilize();
-  break;
- }
+  while (SENSORPIN == LOW){
+    CW;
+    stabilize();
+    sensorState = digitalRead(SensorPin);
+  }
+}
